@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#22392F">
+  <title>Test lab · Corner Café</title>
+  <link rel="icon" type="image/svg+xml" href="assets/icons/logo.svg">
+  <link rel="stylesheet" href="css/app.css">
+  <style>
+    .lab { padding: 36px 0 70px; display: grid; gap: 22px; }
+    .lab h1 { font-size: clamp(34px, 5vw, 52px); }
+    .lab-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-l); padding: 22px; }
+    .lab-card h2 { font-size: 24px; margin-bottom: 6px; }
+    .criterion { margin: 6px 0 14px; padding: 12px 14px; border-left: 4px solid var(--yolk); background: var(--milk); border-radius: 0 10px 10px 0; font-size: 15px; }
+    .lab-row { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: end; margin-bottom: 14px; }
+    .lab-row label { display: grid; gap: 4px; font-size: 13px; font-weight: 600; }
+    .lab-row input { width: 110px; height: 40px; padding: 0 10px; border-radius: 10px; border: 1.5px solid var(--line); background: var(--milk); }
+    .verdict { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; margin: 12px 0; }
+    .verdict div { padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line); }
+    .verdict strong { display: block; font: 700 26px/1.1 var(--display); font-variant-numeric: tabular-nums; }
+    .verdict .met { border-color: var(--c1); box-shadow: inset 0 0 0 1px var(--c1); }
+    .verdict .missed { border-color: var(--red); box-shadow: inset 0 0 0 1px var(--red); }
+    .progress { font-size: 14px; color: var(--ink-2); min-height: 20px; }
+    .lab table td.bad { color: var(--red); font-weight: 600; }
+    .lab-note { font-size: 13px; color: var(--ink-2); margin-top: 10px; max-width: 80ch; }
+  </style>
+  <script src="js/config.js" defer></script>
+  <script src="js/demo-data.js" defer></script>
+  <script src="js/domain.js" defer></script>
+  <script src="js/api.js" defer></script>
+  <script src="js/lab.js" defer></script>
+</head>
+<body>
+  <header class="topbar"><div class="wrap topbar-inner">
+    <a class="brand" href="index.html"><img src="assets/icons/logo.svg" width="40" height="40" alt=""><span>Corner Café</span></a>
+    <nav class="nav" aria-label="Main"><a href="index.html#menu">Menu</a><a href="index.html#staff">Staff</a></nav>
+  </div></header>
+  <main class="wrap lab" id="main">
+    <div>
+      <h1>Test lab</h1>
+      <p class="lede" style="margin-top:10px">Runs our Stage 1 success criteria exactly as written and keeps the results for the report. <span id="labMode"></span></p>
+    </div>
+
+    <section class="lab-card" aria-labelledby="sc3">
+      <h2 id="sc3">Success criterion 3: performance</h2>
+      <p class="criterion">With five concurrent users on a stable connection of at least 10 Mbps, at least 19 out of 20 menu loads and 19 out of 20 order submissions complete within three seconds.</p>
+      <div class="lab-row">
+        <label>Concurrent users<input id="perfUsers" type="number" min="1" max="10" value="5"></label>
+        <label>Menu loads<input id="perfMenu" type="number" min="1" max="50" value="20"></label>
+        <label>Order submissions<input id="perfOrders" type="number" min="0" max="50" value="20"></label>
+        <label>Limit (ms)<input id="perfLimit" type="number" min="500" max="10000" step="500" value="3000"></label>
+        <button class="btn btn-primary" id="perfRun" type="button">Run the performance test</button>
+      </div>
+      <p class="progress" id="perfProgress" aria-live="polite"></p>
+      <div id="perfResult"></div>
+      <p class="lab-note">Each order submission is timed from sending the request to receiving the saved order, which is when the confirmation appears. Test orders use the name "Load test" and are flagged as test data in the database, so they never mix with the analysis of real orders.</p>
+    </section>
+
+    <section class="lab-card" aria-labelledby="sc2">
+      <h2 id="sc2">Success criterion 2: correct end-to-end handling</h2>
+      <p class="criterion">All 20 scripted test orders appear exactly once in the staff dashboard with the correct items, quantities and totals. For each order, the customer’s status page matches the staff’s saved status after refreshing.</p>
+      <div class="lab-row">
+        <span id="staffState" class="muted">Checking staff sign-in…</span>
+        <button class="btn btn-primary" id="e2eRun" type="button" disabled>Run 20 scripted orders</button>
+      </div>
+      <p class="progress" id="e2eProgress" aria-live="polite"></p>
+      <div id="e2eResult"></div>
+    </section>
+
+    <section class="lab-card" aria-labelledby="sc1">
+      <h2 id="sc1">Success criterion 1: first-time users</h2>
+      <p class="criterion">At least four out of five first-time test users can place a two-item pickup order without assistance in two minutes or less on a 360 px-wide phone screen, with no horizontal scrolling.</p>
+      <p>Open <strong id="testLink"></strong> on the tester’s phone. Give them the task card, press <em>Start the task</em> and stay silent. The timer stops by itself when the order is confirmed. Write down whether they needed help.</p>
+      <div id="sc1Result" style="margin-top:12px"></div>
+    </section>
+
+    <section class="lab-card" aria-labelledby="sec">
+      <h2 id="sec">Security check</h2>
+      <p class="criterion">R12: the system shall use HTTPS and enforce staff-only access on the backend.</p>
+      <p class="muted" style="margin-bottom:12px">Sends three requests as an anonymous visitor, without any login, and shows what the database answers.</p>
+      <button class="btn btn-primary" id="secRun" type="button">Run the security check</button>
+      <div id="secResult" style="margin-top:12px"></div>
+    </section>
+
+    <section class="lab-card" aria-labelledby="avail">
+      <h2 id="avail">Availability monitor</h2>
+      <p class="criterion">R14: the cloud-hosted prototype should be reachable in at least 99% of monitoring checks during an hour before the demonstration.</p>
+      <div class="lab-row">
+        <label>Check every (min)<input id="monEvery" type="number" min="1" max="10" value="5"></label>
+        <label>For (min)<input id="monFor" type="number" min="1" max="120" value="60"></label>
+        <button class="btn btn-primary" id="monRun" type="button">Start monitoring</button>
+      </div>
+      <p class="progress" id="monProgress" aria-live="polite"></p>
+      <div id="monResult"></div>
+      <p class="lab-note">A check succeeds when the public menu endpoint answers with a non-empty menu within 10 seconds. Keep this tab open while it runs.</p>
+    </section>
+
+    <section class="lab-card" aria-labelledby="clean">
+      <h2 id="clean">Clean up</h2>
+      <p class="muted" style="margin-bottom:12px">Removes every test order named “Load test” or “QA test”. Real orders are not touched. Manager sign-in required.</p>
+      <button class="btn btn-ghost" id="cleanRun" type="button">Remove load-test orders</button>
+      <p class="progress" id="cleanResult" aria-live="polite"></p>
+    </section>
+  </main>
+</body>
+</html>

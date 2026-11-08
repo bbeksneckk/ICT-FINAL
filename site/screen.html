@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#16241E">
+  <title>Pickup screen · Corner Café</title>
+  <link rel="icon" type="image/svg+xml" href="assets/icons/logo.svg">
+  <link rel="stylesheet" href="css/app.css">
+  <style>
+    /* A screen for a TV above the pickup shelf: order numbers only, readable from across the room. */
+    html, body { height: 100%; }
+    body.tv { --bg: #16241E; --panel: #1F3229; --paper: #F1F3EE; --soft: #B9CBC1; --yolk: #F2B33D; --yolk-ink: #2A1E03;
+      background: var(--bg); color: var(--paper); min-height: 100vh; overflow: hidden; display: grid; grid-template-rows: auto 1fr auto; font-size: clamp(14px, 1.2vw, 22px); }
+    .tv-top { display: flex; align-items: center; gap: 1em; padding: 2.2vh 3vw 1.4vh; }
+    .tv-brand { display: flex; align-items: center; gap: .6em; font: 700 clamp(22px, 2.4vw, 46px)/1 var(--display); letter-spacing: -0.02em; }
+    .tv-brand img { width: 1.4em; height: 1.4em; }
+    .tv-clock { margin-left: auto; font: 700 clamp(26px, 3vw, 58px)/1 var(--display); font-variant-numeric: tabular-nums; }
+    .tv-tools { display: flex; gap: .5em; transition: opacity .3s; }
+    body.idle .tv-tools { opacity: 0; pointer-events: none; }
+    body.idle { cursor: none; }
+    .tv-btn { height: 2.4em; padding: 0 1em; border-radius: 999px; border: 1.5px solid #3A5247; background: transparent; color: var(--paper); font-weight: 600; font-size: .8em; }
+    .tv-btn[aria-pressed="true"] { background: var(--paper); color: var(--bg); }
+    .tv-cols { display: grid; grid-template-columns: 1fr 1.25fr; gap: 2vw; padding: 1vh 3vw; min-height: 0; }
+    .tv-col { background: var(--panel); border-radius: 28px; padding: 2.4vh 2vw; display: grid; grid-template-rows: auto 1fr; min-height: 0; overflow: hidden; }
+    .tv-col.ready { background: var(--yolk); color: var(--yolk-ink); }
+    .tv-col h1 { font: 700 clamp(28px, 3.4vw, 64px)/1 var(--display); letter-spacing: -0.02em; margin-bottom: 2.2vh; display: flex; align-items: baseline; gap: .4em; }
+    .tv-col h1 small { font: 600 .42em/1 var(--text); letter-spacing: 0; opacity: .75; }
+    .tv-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(clamp(130px, 14vw, 280px), 1fr)); gap: 2.4vh 2vw; align-content: start; }
+    .tv-list.big { grid-template-columns: repeat(auto-fill, minmax(clamp(200px, 17vw, 360px), 1fr)); }
+    .tv-num { font: 700 clamp(36px, 4.4vw, 96px)/1 var(--display); letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+    .tv-item { display: grid; gap: .5vh; }
+    .tv-sub { font-size: .95em; font-weight: 600; opacity: .8; }
+    .ready .tv-item { background: rgba(42, 30, 3, .08); border-radius: 18px; padding: 1.4vh 1.2vw; }
+    .ready .tv-num { font-size: clamp(44px, 5.6vw, 120px); }
+    .ready .tv-sub { opacity: 1; font-size: 1.15em; }
+    .tv-item.fresh { animation: tv-pop 1s ease-in-out 6; }
+    @keyframes tv-pop { 50% { background: rgba(42, 30, 3, .25); transform: scale(1.03); } }
+    .tv-dot { display: inline-block; width: .55em; height: .55em; border-radius: 50%; background: var(--yolk); margin-right: .45em; vertical-align: middle; }
+    .tv-empty { font-size: 1.3em; opacity: .7; align-self: start; }
+    .tv-more { font-size: 1.1em; font-weight: 600; opacity: .8; align-self: center; }
+    .tv-foot { display: grid; grid-template-columns: auto 1fr auto; gap: 2vw; align-items: center; padding: 1.6vh 3vw 2.4vh; }
+    .tv-qr { width: clamp(84px, 9vw, 170px); background: #fff; border-radius: 14px; padding: 6px; }
+    .tv-qr svg { display: block; width: 100%; height: auto; }
+    .tv-cta strong { display: block; font: 700 clamp(20px, 2.1vw, 40px)/1.15 var(--display); }
+    .tv-cta span { color: var(--soft); font-size: 1.05em; }
+    .tv-wait { text-align: right; }
+    .tv-wait strong { display: block; font: 700 clamp(22px, 2.4vw, 46px)/1.1 var(--display); font-variant-numeric: tabular-nums; }
+    .tv-wait span { color: var(--soft); }
+    .tv-alert { position: fixed; left: 50%; top: 2vh; transform: translateX(-50%); background: #B3261E; color: #fff; padding: .6em 1.2em; border-radius: 999px; font-weight: 600; }
+    .tv-demo { color: var(--soft); font-size: .8em; }
+    @media (max-width: 760px) {
+      body.tv { overflow: auto; }
+      .tv-cols { grid-template-columns: 1fr; }
+      .tv-foot { grid-template-columns: auto 1fr; }
+      .tv-wait { grid-column: 1 / -1; text-align: left; }
+      .tv-tools { display: none; }
+    }
+  </style>
+  <script src="js/config.js" defer></script>
+  <script src="js/demo-data.js" defer></script>
+  <script src="js/domain.js" defer></script>
+  <script src="js/api.js" defer></script>
+  <script src="js/qr.js" defer></script>
+  <script src="js/screen.js" defer></script>
+</head>
+<body class="tv">
+  <header class="tv-top">
+    <div class="tv-brand"><img src="assets/icons/logo.svg" alt=""><span>Corner Café</span></div>
+    <span class="tv-demo" id="tvDemo" hidden>Demo data</span>
+    <div class="tv-clock" id="tvClock" aria-label="Current time">--:--</div>
+    <div class="tv-tools">
+      <button class="tv-btn" id="tvSound" type="button" aria-pressed="false">Sound off</button>
+      <button class="tv-btn" id="tvFull" type="button">Full screen</button>
+    </div>
+  </header>
+
+  <main class="tv-cols">
+    <section class="tv-col" aria-labelledby="tvProgTitle">
+      <h1 id="tvProgTitle">Preparing <small id="tvProgCount"></small></h1>
+      <ul class="tv-list" id="tvProgress" aria-live="polite"></ul>
+    </section>
+    <section class="tv-col ready" aria-labelledby="tvReadyTitle">
+      <h1 id="tvReadyTitle">Ready for pickup <small id="tvReadyCount"></small></h1>
+      <ul class="tv-list big" id="tvReady" aria-live="polite"></ul>
+    </section>
+  </main>
+
+  <footer class="tv-foot">
+    <div class="tv-qr" id="tvQr"></div>
+    <div class="tv-cta"><strong>Next time, order ahead on your phone.</strong><span>Scan the code, choose your drink and pick it up from the shelf.</span></div>
+    <div class="tv-wait"><strong id="tvWait">–</strong><span>for a new order right now</span></div>
+  </footer>
+  <p class="tv-alert" id="tvOffline" hidden role="alert">Cannot reach the café server. Retrying…</p>
+</body>
+</html>

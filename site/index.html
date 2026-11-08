@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#22392F">
+  <meta name="description" content="Order coffee and food from Corner Café, then pick it up at the counter without queueing.">
+  <title>Corner Café · Order ahead</title>
+  <link rel="icon" type="image/svg+xml" href="assets/icons/logo.svg">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="assets/icons/app-192.png">
+  <link rel="preload" href="assets/fonts/adventor-bold.woff" as="font" type="font/woff" crossorigin>
+  <link rel="stylesheet" href="css/app.css">
+  <script>try{var t=localStorage.getItem("cafe.theme");if(t)document.documentElement.dataset.theme=JSON.parse(t)}catch(e){}</script>
+  <script src="js/config.js" defer></script>
+  <script src="js/demo-data.js" defer></script>
+  <script src="js/domain.js" defer></script>
+  <script src="js/api.js" defer></script>
+  <script src="js/charts.js" defer></script>
+  <script src="js/art.js" defer></script>
+  <script src="js/qr.js" defer></script>
+  <script src="js/app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="topbar">
+    <div class="wrap topbar-inner">
+      <a class="brand" href="#menu" aria-label="Corner Café, back to the menu">
+        <img src="assets/icons/logo.svg" width="40" height="40" alt="">
+        <span>Corner Café</span>
+      </a>
+      <nav class="nav" aria-label="Main">
+        <a href="#menu" data-nav="menu">Menu</a>
+        <a href="#order" data-nav="order">My order<span class="nav-dot" id="orderDot" hidden></span></a>
+        <a href="#staff" data-nav="staff">Staff</a>
+      </nav>
+      <button class="icon-btn" id="themeToggle" type="button" aria-label="Switch to dark theme">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path class="moon" d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/><g class="sun"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></g></svg>
+      </button>
+    </div>
+  </header>
+
+  <div class="mode-banner" id="modeBanner" hidden>
+    <div class="wrap">Demo mode: orders are saved only in this browser. <button class="link-btn" type="button" data-mode-switch="supabase">Use the live café database</button></div>
+  </div>
+
+  <main id="main" tabindex="-1">
+    <!-- Menu and cart -->
+    <section class="view" id="view-menu" aria-labelledby="heroTitle">
+      <div class="wrap hero">
+        <div class="hero-copy">
+          <h1 id="heroTitle">Order ahead.<br>Skip the queue.</h1>
+          <p class="lede">Choose your coffee and food here, pay at the counter, and collect your bag from the pickup shelf when it is ready.</p>
+          <div class="queue" id="queueCard" aria-live="polite">
+            <span class="queue-light" aria-hidden="true"></span>
+            <div><strong id="queueWait">Checking the kitchen…</strong><span id="queueText">Live estimate from the café</span></div>
+          </div>
+          <figure class="busy" id="busyStrip" hidden>
+            <figcaption id="busyText"></figcaption>
+            <div class="busy-bars" id="busyBars" role="img"></div>
+          </figure>
+        </div>
+        <div class="hero-media">
+          <picture><source srcset="assets/images/coffee-480.webp 480w, assets/images/coffee-960.webp 960w" sizes="(max-width: 800px) calc(100vw - 32px), 520px" type="image/webp"><img class="hero-photo" src="assets/images/coffee-960.webp" width="960" height="640" alt="Two cups of coffee on a café counter." fetchpriority="high"></picture>
+          <picture><source srcset="assets/images/pastry-480.webp 480w" sizes="160px" type="image/webp"><img class="hero-photo-small" src="assets/images/pastry-480.webp" width="480" height="320" alt="An almond croissant dusted with icing sugar on a white plate." decoding="async" loading="lazy"></picture>
+        </div>
+      </div>
+
+      <div class="wrap shop">
+        <section class="menu-col" aria-labelledby="menuTitle">
+          <div class="menu-head">
+            <h2 id="menuTitle">Menu</h2>
+            <label class="search"><span class="sr-only">Search the menu</span>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg>
+              <input id="menuSearch" type="search" placeholder="Search the menu" maxlength="60" autocomplete="off">
+            </label>
+          </div>
+          <div class="chips" id="categoryChips" role="group" aria-label="Filter by category"></div>
+          <div class="again" id="orderAgain" hidden></div>
+          <section class="picks" id="nowPicks" hidden aria-label="Often ordered at this time of day"></section>
+          <p class="result-count" id="menuCount" aria-live="polite"></p>
+          <div class="menu-grid" id="menuGrid"><p class="muted">Loading the menu…</p></div>
+        </section>
+
+        <aside class="ticket" id="cart" aria-labelledby="cartTitle">
+          <div class="ticket-paper">
+            <div class="ticket-head">
+              <h2 id="cartTitle">Your order</h2>
+              <span class="ticket-count" id="cartCount">0</span>
+              <button class="icon-btn sheet-close" id="cartClose" type="button" aria-label="Close your order"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+            </div>
+            <div class="ticket-lines" id="cartItems"></div>
+            <div class="ticket-total"><span>Total</span><strong id="cartTotal">0 ₸</strong></div>
+            <form id="checkoutForm" novalidate>
+              <fieldset class="pickup">
+                <legend>When will you pick it up?</legend>
+                <div class="seg" id="pickupSeg">
+                  <label><input type="radio" name="pickup" value="" checked><span>As soon as ready</span></label>
+                  <label><input type="radio" name="pickup" value="15"><span>15 min</span></label>
+                  <label><input type="radio" name="pickup" value="30"><span>30 min</span></label>
+                  <label><input type="radio" name="pickup" value="60"><span>1 hour</span></label>
+                </div>
+              </fieldset>
+              <div class="field">
+                <label for="customerName">Name for the order</label>
+                <input id="customerName" type="text" autocomplete="given-name" maxlength="50" placeholder="Your first name" required aria-describedby="checkoutMessage">
+              </div>
+              <div class="field">
+                <label for="customerNote">Note for the barista (optional) <span class="counter" id="noteCount">0/140</span></label>
+                <textarea id="customerNote" rows="2" maxlength="140" placeholder="Oat milk, no sugar, extra hot"></textarea>
+              </div>
+              <p class="field-msg" id="checkoutMessage" role="status" aria-live="polite"></p>
+              <button class="btn btn-primary btn-block" id="checkoutButton" type="submit">Place order</button>
+              <p class="fine">You pay at the counter when you collect. No account needed. We keep only your first name, to call you at pickup, and remove it after 90 days.</p>
+            </form>
+            <label class="check"><input type="checkbox" id="soundEnabled"> Play a sound when my order is placed or ready</label>
+          </div>
+        </aside>
+      </div>
+
+      <div class="cart-bar" id="cartBar" hidden>
+        <button class="cart-bar-btn" id="cartBarButton" type="button" aria-controls="cart">
+          <span id="cartBarCount">0 items</span><strong id="cartBarTotal">0 ₸</strong><span class="cart-bar-cta">View order</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Order tracking -->
+    <section class="view" id="view-order" hidden aria-label="Your order">
+      <div class="wrap" id="trackRoot"></div>
+    </section>
+
+    <!-- Staff -->
+    <section class="view" id="view-staff" hidden aria-label="Staff">
+      <div class="wrap" id="staffRoot"></div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap footer-inner">
+      <span>Corner Café, an ICT project by SE-2624.</span>
+      <span class="footer-links"><button class="link-btn" type="button" id="installApp" hidden>Install the app</button><a href="screen.html">Pickup screen</a><a href="test-lab.html">Test lab</a><button class="link-btn" type="button" id="footerMode"></button></span>
+    </div>
+  </footer>
+
+  <div class="toasts" id="toasts" aria-live="polite"></div>
+  <audio id="confirmationAudio" preload="none" src="assets/audio/order-confirmed.mp3"></audio>
+</body>
+</html>

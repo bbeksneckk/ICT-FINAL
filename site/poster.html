@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#22392F">
+  <title>Scan-to-order poster · Corner Café</title>
+  <link rel="icon" type="image/svg+xml" href="assets/icons/logo.svg">
+  <link rel="stylesheet" href="css/app.css">
+  <style>
+    @page { size: A4 portrait; margin: 0; }
+    body.poster-page { background: #DCE1DA; color: #17221D; display: block; }
+    .poster-tools { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: end; max-width: 210mm; margin: 24px auto 16px; padding: 0 16px; }
+    .poster-tools label { display: grid; gap: 4px; font-size: 13px; font-weight: 600; flex: 1 1 260px; }
+    .poster-tools input { height: 42px; padding: 0 12px; border-radius: 10px; border: 1.5px solid #B9C2BB; background: #fff; }
+    .poster-tools p { flex-basis: 100%; font-size: 13px; color: #4A5751; }
+    .sheet { width: 210mm; height: 297mm; margin: 0 auto 32px; background: #F1F3EE; position: relative; overflow: hidden; box-shadow: 0 20px 50px -20px rgba(0,0,0,.4);
+      display: grid; grid-template-rows: 118mm 1fr auto; }
+    .sheet-top { background: #22392F; color: #F1F3EE; padding: 16mm 16mm 0; }
+    .sheet-brand { display: flex; align-items: center; gap: 4mm; font: 700 9mm/1 var(--display); letter-spacing: -0.02em; }
+    .sheet-brand img { width: 12mm; height: 12mm; }
+    .sheet h1 { margin-top: 12mm; font: 700 22mm/.92 var(--display); letter-spacing: -0.04em; }
+    .sheet-sub { margin-top: 6mm; font-size: 5.2mm; color: #CFE0D6; max-width: 120mm; line-height: 1.35; }
+    .sheet-mid { display: grid; grid-template-columns: 92mm 1fr; gap: 12mm; padding: 0 16mm; align-items: start; }
+    .sheet-qr { margin-top: -26mm; background: #fff; border-radius: 6mm; padding: 5mm; box-shadow: 0 8mm 16mm -8mm rgba(0,0,0,.35); }
+    .sheet-qr svg { display: block; width: 100%; height: auto; }
+    .sheet-qr p { margin-top: 3mm; font-size: 3.3mm; color: #4A5751; text-align: center; word-break: break-all; }
+    .sheet-steps { list-style: none; margin: 10mm 0 0; padding: 0; display: grid; gap: 7mm; counter-reset: step; }
+    .sheet-steps li { counter-increment: step; display: grid; grid-template-columns: 11mm 1fr; gap: 4mm; font-size: 4.6mm; line-height: 1.35; }
+    .sheet-steps li::before { content: counter(step); display: grid; place-items: center; width: 11mm; height: 11mm; border-radius: 50%; background: #F2B33D; color: #3B2A05; font: 700 5.5mm/1 var(--display); }
+    .sheet-steps strong { display: block; font: 700 5.6mm/1.2 var(--display); }
+    .sheet-foot { margin: 0 16mm 14mm; padding: 6mm 7mm; border: 0.6mm dashed #A68E66; border-radius: 4mm; background: #E9DABF; color: #3A2E1D; display: flex; justify-content: space-between; gap: 6mm; font-size: 4.2mm; }
+    .sheet-foot strong { font: 700 5mm/1.2 var(--display); }
+    @media print {
+      body.poster-page { background: none; }
+      .poster-tools { display: none; }
+      .sheet { margin: 0; box-shadow: none; }
+      * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    }
+    @media screen and (max-width: 840px) {
+      .sheet { transform-origin: top left; }
+    }
+  </style>
+  <script src="js/qr.js" defer></script>
+  <script src="js/poster.js" defer></script>
+</head>
+<body class="poster-page">
+  <div class="poster-tools">
+    <label>Link in the QR code<input id="posterUrl" type="url" spellcheck="false" autocomplete="off"></label>
+    <button class="btn btn-primary" id="posterPrint" type="button">Print the poster</button>
+    <p>Put your public site address here (for example the Netlify link) before printing. The poster is A4; choose “Background graphics” in the print settings.</p>
+  </div>
+
+  <article class="sheet" id="sheet" aria-label="Poster preview">
+    <div class="sheet-top">
+      <div class="sheet-brand"><img src="assets/icons/logo.svg" alt=""><span>Corner Café</span></div>
+      <h1>Skip the queue.</h1>
+      <p class="sheet-sub">Order your coffee and food on your phone. We start making it right away.</p>
+    </div>
+    <div class="sheet-mid">
+      <div class="sheet-qr"><div id="posterQr"></div><p id="posterUrlText"></p></div>
+      <ol class="sheet-steps">
+        <li><span><strong>Scan the code</strong>Open the menu with your phone camera. No app and no account.</span></li>
+        <li><span><strong>Choose and order</strong>Add drinks and food, write your first name, pick a time.</span></li>
+        <li><span><strong>Watch your order</strong>The page shows when it is ready and on which shelf.</span></li>
+        <li><span><strong>Pay and lift your bag</strong>Pay at the counter and take your bag from the pickup shelf.</span></li>
+      </ol>
+    </div>
+    <div class="sheet-foot"><span><strong>Rate your order</strong><br>After pickup you can give it 1 to 5 stars on the same page.</span><span style="text-align:right"><strong>Pay at the counter</strong><br>You pay when you collect the order.</span></div>
+  </article>
+</body>
+</html>
