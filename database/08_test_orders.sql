@@ -16,7 +16,8 @@ AS $function$
         WHERE h.new_status = 'Ready' AND lower(btrim(o.customer_first_name)) NOT IN ('load test', 'qa test')
         ORDER BY h.changed_at DESC LIMIT 200) last
   JOIN public.order_status_history r ON r.order_id = last.order_id AND r.new_status = 'Received'
-  JOIN public.order_status_history y ON y.order_id = last.order_id AND y.new_status = 'Ready';
+  JOIN public.order_status_history y ON y.order_id = last.order_id AND y.new_status = 'Ready'
+  WHERE y.changed_at - r.changed_at <= interval '60 minutes';
 $function$;
 
 CREATE OR REPLACE FUNCTION public.cafe_place_order_v2(p_name text, p_items jsonb, p_token uuid, p_note text DEFAULT NULL::text, p_pickup_in_minutes integer DEFAULT NULL::integer)
